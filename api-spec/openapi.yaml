@@ -1,0 +1,765 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Krishna Pharmacy API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: medicines
+    description: Medicine management
+  - name: categories
+    description: Medicine categories
+  - name: cart
+    description: Shopping cart
+  - name: orders
+    description: Order management
+  - name: prescriptions
+    description: Prescription management
+  - name: users
+    description: User management
+  - name: admin
+    description: Admin dashboard
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /medicines:
+    get:
+      operationId: listMedicines
+      tags: [medicines]
+      summary: List medicines
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+    post:
+      operationId: createMedicine
+      tags: [medicines]
+      summary: Create medicine (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+
+  /medicines/{id}:
+    get:
+      operationId: getMedicine
+      tags: [medicines]
+      summary: Get medicine by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Medicine detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+    patch:
+      operationId: updateMedicine
+      tags: [medicines]
+      summary: Update medicine (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+    delete:
+      operationId: deleteMedicine
+      tags: [medicines]
+      summary: Delete medicine (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /medicines/featured:
+    get:
+      operationId: getFeaturedMedicines
+      tags: [medicines]
+      summary: Get featured medicines for homepage
+      responses:
+        "200":
+          description: Featured medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories with medicine counts
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current cart
+      responses:
+        "200":
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemInput"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/{medicineId}:
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /prescriptions:
+    get:
+      operationId: listPrescriptions
+      tags: [prescriptions]
+      summary: List prescriptions
+      responses:
+        "200":
+          description: Prescriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prescription"
+    post:
+      operationId: uploadPrescription
+      tags: [prescriptions]
+      summary: Upload a prescription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrescriptionInput"
+      responses:
+        "201":
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prescription"
+
+  /prescriptions/{id}/verify:
+    patch:
+      operationId: verifyPrescription
+      tags: [prescriptions]
+      summary: Approve or reject prescription (admin/pharmacist)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrescriptionVerify"
+      responses:
+        "200":
+          description: Updated prescription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prescription"
+
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Get admin dashboard KPIs and stats
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /admin/sales:
+    get:
+      operationId: getSalesData
+      tags: [admin]
+      summary: Get daily/monthly sales chart data
+      responses:
+        "200":
+          description: Sales data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalesDataPoint"
+
+  /admin/top-medicines:
+    get:
+      operationId: getTopMedicines
+      tags: [admin]
+      summary: Get top selling medicines
+      responses:
+        "200":
+          description: Top medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopMedicine"
+
+  /health-tips:
+    get:
+      operationId: listHealthTips
+      tags: [health]
+      summary: Get health tips / blog posts
+      responses:
+        "200":
+          description: Health tips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HealthTip"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Medicine:
+      type: object
+      required: [id, name, brand, category, mrp, discountPrice, stock, prescriptionRequired, imageUrl]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        brand:
+          type: string
+        saltComposition:
+          type: ["string", "null"]
+        category:
+          type: string
+        description:
+          type: ["string", "null"]
+        dosage:
+          type: ["string", "null"]
+        sideEffects:
+          type: ["string", "null"]
+        storageInstructions:
+          type: ["string", "null"]
+        manufacturer:
+          type: ["string", "null"]
+        batchNumber:
+          type: ["string", "null"]
+        expiryDate:
+          type: ["string", "null"]
+        mrp:
+          type: number
+        discountPrice:
+          type: number
+        stock:
+          type: integer
+        prescriptionRequired:
+          type: boolean
+        imageUrl:
+          type: string
+        isFeatured:
+          type: boolean
+        createdAt:
+          type: string
+
+    MedicineInput:
+      type: object
+      required: [name, brand, category, mrp, discountPrice, stock, prescriptionRequired]
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        saltComposition:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        dosage:
+          type: string
+        sideEffects:
+          type: string
+        storageInstructions:
+          type: string
+        manufacturer:
+          type: string
+        batchNumber:
+          type: string
+        expiryDate:
+          type: string
+        mrp:
+          type: number
+        discountPrice:
+          type: number
+        stock:
+          type: integer
+        prescriptionRequired:
+          type: boolean
+        imageUrl:
+          type: string
+        isFeatured:
+          type: boolean
+
+    MedicineUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        saltComposition:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        dosage:
+          type: string
+        sideEffects:
+          type: string
+        storageInstructions:
+          type: string
+        manufacturer:
+          type: string
+        batchNumber:
+          type: string
+        expiryDate:
+          type: string
+        mrp:
+          type: number
+        discountPrice:
+          type: number
+        stock:
+          type: integer
+        prescriptionRequired:
+          type: boolean
+        imageUrl:
+          type: string
+        isFeatured:
+          type: boolean
+
+    Category:
+      type: object
+      required: [id, name, icon, medicineCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        icon:
+          type: string
+        medicineCount:
+          type: integer
+
+    Cart:
+      type: object
+      required: [items, totalAmount]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        totalAmount:
+          type: number
+        totalItems:
+          type: integer
+
+    CartItem:
+      type: object
+      required: [medicineId, medicineName, quantity, price, imageUrl]
+      properties:
+        medicineId:
+          type: integer
+        medicineName:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        imageUrl:
+          type: string
+        prescriptionRequired:
+          type: boolean
+
+    CartItemInput:
+      type: object
+      required: [medicineId, quantity]
+      properties:
+        medicineId:
+          type: integer
+        quantity:
+          type: integer
+
+    Order:
+      type: object
+      required: [id, status, totalAmount, createdAt, items]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        deliveryAddress:
+          type: ["string", "null"]
+        status:
+          type: string
+        totalAmount:
+          type: number
+        prescriptionId:
+          type: ["integer", "null"]
+        paymentStatus:
+          type: string
+        createdAt:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+
+    OrderItem:
+      type: object
+      required: [medicineId, medicineName, quantity, price]
+      properties:
+        medicineId:
+          type: integer
+        medicineName:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+
+    OrderInput:
+      type: object
+      required: [items, deliveryAddress, customerName, customerPhone]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItemInput"
+        deliveryAddress:
+          type: string
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        prescriptionId:
+          type: integer
+
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    Prescription:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: ["string", "null"]
+        fileUrl:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PrescriptionInput:
+      type: object
+      required: [fileUrl, customerName]
+      properties:
+        fileUrl:
+          type: string
+        customerName:
+          type: string
+        notes:
+          type: string
+
+    PrescriptionVerify:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        notes:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [totalRevenue, totalOrders, totalCustomers, totalMedicines, activeUsers, pendingPrescriptions]
+      properties:
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+        totalCustomers:
+          type: integer
+        totalMedicines:
+          type: integer
+        activeUsers:
+          type: integer
+        pendingPrescriptions:
+          type: integer
+        revenueGrowth:
+          type: number
+        ordersGrowth:
+          type: number
+
+    SalesDataPoint:
+      type: object
+      required: [date, revenue, orders]
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+
+    TopMedicine:
+      type: object
+      required: [id, name, salesCount, revenue]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        salesCount:
+          type: integer
+        revenue:
+          type: number
+        imageUrl:
+          type: string
+
+    HealthTip:
+      type: object
+      required: [id, title, excerpt, category, imageUrl, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: ["string", "null"]
+        category:
+          type: string
+        imageUrl:
+          type: string
+        author:
+          type: string
+        createdAt:
+          type: string
